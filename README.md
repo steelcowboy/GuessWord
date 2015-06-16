@@ -6,6 +6,7 @@ The following are what I needed to install on my Arch machine:
 * python2-configargparse
 * python2-requests (only if you don't have `random.txt`)
 * python2-termcolor
+* simple-cipher module to use guessword_enc
 
 However, it's possible you may be missing things. YMMV
 
