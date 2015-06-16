@@ -11,7 +11,7 @@ The following are what I needed to install on my Arch machine:
 However, it's possible you may be missing things. YMMV
 
 # TODO
-* &#10003 ~~Allow color to be turned off~~
+* ✓ ~~Allow color to be turned off~~
 * Add a cheat mode which runs purposely exploitable code
 * Support for multiple words
 * Get dictionary definitions for words from random.txt
