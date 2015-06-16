@@ -14,7 +14,7 @@ parser.add_argument("-d", "--dictionary",
                     help="specify text file for words")
 parser.add_argument("-l", "--level", type=int, choices=[1,2,3],
 					help="""choose a difficulty level (default is 1): 
-					level 1 is twenty incorrect guesses,
+					level 1 is fifteen incorrect guesses,
 					level 2 is ten incorrect guesses
 					and level 3 is five incorrect guesses
 					""")
@@ -72,13 +72,13 @@ def get_word():
 def get_tries():
 	global tries
 	if args.level == 1:
-		tries = 20 
+		tries = 15 
 	elif args.level == 2:
 		tries = 10 
 	elif args.level == 3:
 		tries = 5
 	else:
-		tries = 20
+		tries = 15
 
 
 
