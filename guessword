@@ -1,0 +1,189 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+#
+
+# Import our modules
+from sys import exit
+import random, os, argparse, string
+from termcolor import colored
+from os.path import exists
+
+# Set up the arguments, mostly straightforward
+parser = argparse.ArgumentParser()
+parser.add_argument("-d", "--dictionary", 
+                    help="specify text file for words")
+parser.add_argument("-l", "--level", type=int, choices=[1,2,3],
+					help="""choose a difficulty level (default is 1): 
+					level 1 is twenty incorrect guesses,
+					level 2 is ten incorrect guesses
+					and level 3 is five incorrect guesses
+					""")
+parser.add_argument("-r", "--random", action="store_true",
+					help = "choose random word from dictionary")
+args = parser.parse_args()
+
+
+
+# This retrieves the word to guess 
+def get_word():
+	# We use global to ensure it's available to other functions
+	global word 
+	# If the random argument was selected      
+	if args.random:  
+		# Check if the file exists  
+		if exists("random.txt"):  
+			dict_file = "random.txt" 
+			# Open the file then make a list of all the lines       
+			hang_list = open(dict_file).read().splitlines()
+			# Remove any blank lines    
+			hang_list = filter(None, hang_list)
+			# Choose a random word from the list            
+			word = random.choice(hang_list)	
+		# If the dictionary file does not exist we'll get it from the internet				  
+		else:      
+			import requests
+			word_site = "http://svnweb.freebsd.org/csrg/share/dict/words?view=co&content-type=text/plain"
+			response = requests.get(word_site)
+			words = response.content.splitlines()
+			word = random.choice(words)
+	
+	# Else if the dictionary argument was selected	
+	elif args.dictionary:
+		# See args.random for explanation
+		dict_file = args.dictionary
+		hang_list = open(dict_file).read().splitlines()
+		hang_list = filter(None, hang_list) 
+		word = random.choice(hang_list)
+	
+	# If none were selected print an error and exit
+	else:
+		print """
+		No dictionary selected. Please either use a random word with
+		the "-r" option or choose a dictionary file with "-d".
+		"""
+		exit(0)	
+	# Change any uppercase letters in the word to lowercase
+	word = word.lower()
+
+
+
+# Based on the selected level define how many incorrect guesses. 
+# If none selected, default to 20
+def get_tries():
+	global tries
+	if args.level == 1:
+		tries = 20 
+	elif args.level == 2:
+		tries = 10 
+	elif args.level == 3:
+		tries = 5
+	else:
+		tries = 20
+
+
+
+# We'll initialize the variables
+def var_init():
+	global guesses
+	# First set guesses to blank (in case of new game)
+	guesses = ''
+	# Get the amount of tries
+	get_tries()
+	# Then get the word to guess
+	get_word()
+
+
+
+# This tells us our progress	
+def compare_words():
+	global guesses
+	# First create a blank variable for progress
+	new_word = ''
+	# Loop through the letters in our word
+	for char in word:
+		# If the character in the word matches one we've guessed, write it
+		if char in guesses: 
+			new_word += char
+		# Otherwise leave it blank until we guess it
+		else:
+			new_word += " _ "
+	# This tells the function to output, so 
+	# we store the value of the function itself in a new variable
+	return new_word
+
+
+
+# This is the main function of the game 
+def guessword():
+	# Tell Python that we're using the global variables
+	global guesses, tries, word
+	
+	# We use a while loop to keep prompting the user for a single letter
+	while True:
+		letter = raw_input("Guess a letter: ")
+		if len(letter) == 1:
+			# Until the input is one letter (not a symbol or number)
+			if letter in string.letters:
+				# Then we break out of the loop
+				break
+			# If it's not a letter but only one character we still keep going	
+			print colored('Please enter only letters', 'magenta', attrs=['bold'])
+		# If it's not a single character
+		else:
+			print colored('Please enter only one character', 'magenta', attrs=['bold'])
+    
+    # Regardless of what was entered, the letter is now lowercase	
+	letter = letter.lower()
+	
+	# If the letter has already been guessed, tell the user then go back to the beginning
+	if letter in guesses:
+		print colored("That letter has already been guessed.", 'red', attrs=['bold'])
+		guessword()
+	# Otherwise we'll add it to the list
+	else:
+		guesses += letter
+		
+	# Remember return? By returning a value we evaluate and store in new_word
+	new_word = compare_words()
+	
+	# If the letter is not one in the word we're guessing
+	if letter not in word:
+		# Take away one try
+		tries -= 1
+		print colored("Incorrect. You have %d tries left." % tries, 'red', attrs=['bold'])
+	else:
+		print colored("Correct!", 'green', attrs=['bold'])
+	
+	# Display the user's current guesses and progress
+	print "\nCurrent guesses: %s" % guesses
+	print "%s\n\n" % new_word
+	
+	# If the user successfully guesses the word
+	if new_word == word:
+		print colored("You won! Good job! ", 'green', attrs=['bold']) + "The word was %s" % word
+		play_again()
+	# But if the user lost...
+	elif tries == 0:
+		print colored("You lose! The word was %s" % word, 'red', attrs=['bold'])
+		play_again()
+	# If the user has not lost or won yet, go back to the beginning
+	else:
+		guessword()
+
+# Ask the user if they'd like to play again; if not just exit
+def play_again():
+	again = raw_input("Play again? (Y/n) > ")
+	if again == "y" or again == "Y": 
+		# Reset the game then start over
+		var_init()
+		guessword() 
+	else:
+		exit(0)
+	
+# The initial start of the game
+var_init()		
+guessword()
+
+
+
+
