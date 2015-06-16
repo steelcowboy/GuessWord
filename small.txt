@@ -1,6 +1,0 @@
-cat
-dog
-mouse
-house
-cow
-
