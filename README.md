@@ -15,4 +15,5 @@ However, it's possible you may be missing things. YMMV
 * Support for multiple words
 * Get dictionary definitions for words from random.txt
 * Create an ncurses version
+* Add extra dictionary files and store them in a format other than plaintext so you can't cheat
 * Improve this game so much that it becomes an operating system
