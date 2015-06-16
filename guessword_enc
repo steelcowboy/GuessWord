@@ -1,0 +1,145 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+
+# See guessword for explanation of everything
+
+from sys import exit
+import random, os, argparse, string
+from termcolor import colored
+from os.path import exists
+from simplecrypt import encrypt, decrypt
+
+parser = argparse.ArgumentParser()
+parser.add_argument("-d", "--dictionary", 
+                    help="specify text file for words")
+parser.add_argument("-l", "--level", type=int, choices=[1,2,3],
+					help="""choose a difficulty level (default is 1): 
+					level 1 is fifteen incorrect guesses,
+					level 2 is ten incorrect guesses
+					and level 3 is five incorrect guesses
+					""")
+parser.add_argument("-r", "--random", action="store_true",
+					help = "choose random word from dictionary")
+args = parser.parse_args()
+
+# This allows us to decrypt the input file
+def decrypt_file(file_name, key):
+    with open(file_name, 'rb') as fo:
+        ciphertext = fo.read()
+    dec = decrypt(key, ciphertext)
+    return dec
+       
+def get_word():
+	global word
+	if args.random:
+		if exists("random.txt"):
+			dict_file = "random.txt"
+			hang_list = open(dict_file).read().splitlines()
+			hang_list = filter(None, hang_list) 
+			word = random.choice(hang_list)
+		else:
+			import requests
+			word_site = "http://svnweb.freebsd.org/csrg/share/dict/words?view=co&content-type=text/plain"
+			response = requests.get(word_site)
+			words = response.content.splitlines()
+			word = random.choice(words)
+		
+	elif args.dictionary:
+		# We decrypt the input file and use that now. However, now we don't need to open it
+		# TODO: Have dict_file survive when game is restarted
+		dict_file = decrypt_file(args.dictionary, 'password')
+		hang_list = dict_file.splitlines()
+		hang_list = filter(None, hang_list) 
+		word = random.choice(hang_list)
+
+	else:
+		print """
+		No dictionary selected. Please either use a random word with
+		the "-r" option or choose a dictionary file with "-d".
+		"""
+		exit(0)	
+	word = word.lower()
+
+def get_tries():
+	global tries
+	if args.level == 1:
+		tries = 15
+	elif args.level == 2:
+		tries = 10 
+	elif args.level == 3:
+		tries = 5
+	else:
+		tries = 15
+	
+def var_init():
+	global guesses
+	guesses = ''
+	get_tries()
+	get_word()
+		
+def compare_words():
+	global guesses
+	new_word = ''
+	for char in word:
+		if char in guesses: 
+			new_word += char
+		else:
+			new_word += " _ "
+	return new_word
+
+def guessword():
+	global guesses, tries, word
+	
+	while True:
+		letter = raw_input("Guess a letter: ")
+		if len(letter) == 1:
+			if letter in string.letters:
+				break
+			print colored('Please enter only letters', 'magenta', attrs=['bold'])
+		else:
+			print colored('Please enter only one character', 'magenta', attrs=['bold'])
+    	
+	letter = letter.lower()
+	if letter in guesses:
+		print colored("That letter has already been guessed.", 'red', attrs=['bold'])
+		guessword()
+	else:
+		guesses += letter
+		
+	new_word = compare_words()
+		
+	if letter not in word:
+		tries -= 1
+		print colored("Incorrect. You have %d tries left." % tries, 'red', attrs=['bold'])
+	else:
+		print colored("Correct!", 'green', attrs=['bold'])
+		
+	print "\nCurrent guesses: %s" % guesses
+	print "%s\n\n" % new_word
+
+	if new_word == word:
+		print colored("You won! Good job! ", 'green', attrs=['bold']) + "The word was %s" % word
+		play_again()
+		else:
+			exit(0)
+	elif tries == 0:
+		print colored("You lose! The word was %s" % word, 'red', attrs=['bold'])
+		play_again()
+	else:
+		guessword()
+
+def play_again():
+	again = raw_input("Play again? (Y/n) > ")
+	if again == "y" or again == "Y": 
+		# Reset the game then start over
+		var_init()
+		guessword() 
+	else:
+		exit(0)
+
+var_init()		
+guessword()
+
+
+
+
