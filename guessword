@@ -45,8 +45,6 @@ def color_output():
 
 # This retrieves the word to guess 
 def get_word():
-	# We use global to ensure it's available to other functions
-	global word 
 	# If the random argument was selected      
 	if args.random:  
 		# Check if the file exists  
@@ -83,8 +81,7 @@ def get_word():
 		exit(0)	
 	# Change any uppercase letters in the word to lowercase
 	word = word.lower()
-
-
+	return word
 
 # Based on the selected level define how many incorrect guesses. 
 # If none selected, default to 20
@@ -98,24 +95,10 @@ def get_tries():
 		tries = 5
 	else:
 		tries = 15
-
-
-
-# We'll initialize the variables
-def var_init():
-	global guesses
-	# First set guesses to blank (in case of new game)
-	guesses = ''
-	# Get the amount of tries
-	get_tries()
-	# Then get the word to guess
-	get_word()
-
-
-
+	return tries
+	
 # This tells us our progress	
-def compare_words():
-	global guesses
+def compare_words(word):
 	# First create a blank variable for progress
 	new_word = ''
 	# Loop through the letters in our word
@@ -128,17 +111,32 @@ def compare_words():
 			new_word += " _ "
 	# This tells the function to output, so 
 	# we store the value of the function itself in a new variable
-	return new_word
+	return new_word				
 
+# Ask the user if they'd like to play again; if not just exit
+def play_again():
+	again = raw_input("Play again? (Y/n) > ")
+	if again == "y" or again == "Y": 
+		global counter
+		counter = 1
+	else:
+		exit(0)	
 
-
-# This is the main function of the game 
-def guessword():
-	# Tell Python that we're using the global variables
-	global guesses, tries, word
+# Game
+counter = 1
+while True:
+	if counter == 1:
+		guesses = ''
+		word = get_word()	
+		tries = get_tries()
+	else:
+		pass
+		
+	counter += 1
 	
 	# Decide whether or not to colorize output
 	color_output()
+	new_word = compare_words(word)
 	
 	# We use a while loop to keep prompting the user for a single letter
 	while True:
@@ -160,13 +158,12 @@ def guessword():
 	# If the letter has already been guessed, tell the user then go back to the beginning
 	if letter in guesses:
 		print err_msg_gss
-		guessword()
+		continue
 	# Otherwise we'll add it to the list
 	else:
 		guesses += letter
-		
-	# Remember return? By returning a value we evaluate and store in new_word
-	new_word = compare_words()
+	
+	new_word = compare_words(word)	
 	
 	# If the letter is not one in the word we're guessing
 	if letter not in word:
@@ -186,27 +183,12 @@ def guessword():
 		play_again()
 	# But if the user lost...
 	elif tries == 0:
-		print lose_msg
+		print lose_msg % word
 		play_again()
 	# If the user has not lost or won yet, go back to the beginning
 	else:
-		guessword()
+		continue
 
-# Ask the user if they'd like to play again; if not just exit
-def play_again():
-	again = raw_input("Play again? (Y/n) > ")
-	if again == "y" or again == "Y": 
-		# Reset the game then start over
-		var_init()
-		guessword() 
-	else:
-		exit(0)
-
-
-
-# The initial start of the game
-var_init()		
-guessword()
 
 
 
