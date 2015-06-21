@@ -5,7 +5,6 @@
 # Import our modules
 from sys import exit
 import random, os, argparse, string
-from termcolor import colored
 from os.path import exists
 
 # Set up the arguments, mostly straightforward
@@ -20,14 +19,32 @@ parser.add_argument("-l", "--level", type=int, choices=[1,2,3],
 					""")
 parser.add_argument("-r", "--random", action="store_true",
 					help = "choose random word from dictionary")
+parser.add_argument("--no-color", action="store_true",
+					help = "turn off color")
 args = parser.parse_args()
 
-
+# Just the output messages so the color can be turned off
+def color_output():
+	global correct_msg, incor_msg, win_msg, lose_msg, err_msg_let, err_msg_one, err_msg_gss
+	if args.no_color:
+		correct_msg = "Correct!"
+		incor_msg = "Incorrect. You have %d tries left."
+		win_msg = "You won! Good job! The word was %s"
+		lose_msg = "You lose! The word was %s" 
+		err_msg_let = "Please enter only letters."
+		err_msg_one = "Please enter only one character."
+		err_msg_gss = "That letter has already been guessed." 
+	else:
+		correct_msg = "\033[1;32mCorrect!\033[0m"
+		incor_msg = "\033[1;31mIncorrect. You have %d tries left.\033[0m"
+		win_msg = "\033[1;32mYou won! Good job!\033[0m The word was %s"
+		lose_msg = "\033[1;31mYou lose!\033[0m The word was %s"
+		err_msg_let = "\033[1;35mPlease enter only letters.\033[0m"
+		err_msg_one = "\033[1;35mPlease enter only one character.\033[0m"
+		err_msg_gss = "\033[1;31mThat letter has already been guessed.\033[0m"
 
 # This retrieves the word to guess 
 def get_word():
-	# We use global to ensure it's available to other functions
-	global word 
 	# If the random argument was selected      
 	if args.random:  
 		# Check if the file exists  
@@ -64,8 +81,7 @@ def get_word():
 		exit(0)	
 	# Change any uppercase letters in the word to lowercase
 	word = word.lower()
-
-
+	return word
 
 # Based on the selected level define how many incorrect guesses. 
 # If none selected, default to 20
@@ -79,24 +95,10 @@ def get_tries():
 		tries = 5
 	else:
 		tries = 15
-
-
-
-# We'll initialize the variables
-def var_init():
-	global guesses
-	# First set guesses to blank (in case of new game)
-	guesses = ''
-	# Get the amount of tries
-	get_tries()
-	# Then get the word to guess
-	get_word()
-
-
-
+	return tries
+	
 # This tells us our progress	
-def compare_words():
-	global guesses
+def compare_words(word):
 	# First create a blank variable for progress
 	new_word = ''
 	# Loop through the letters in our word
@@ -109,14 +111,32 @@ def compare_words():
 			new_word += " _ "
 	# This tells the function to output, so 
 	# we store the value of the function itself in a new variable
-	return new_word
+	return new_word				
 
+# Ask the user if they'd like to play again; if not just exit
+def play_again():
+	again = raw_input("Play again? (Y/n) > ")
+	if again == "y" or again == "Y": 
+		global counter
+		counter = 1
+	else:
+		exit(0)	
 
-
-# This is the main function of the game 
-def guessword():
-	# Tell Python that we're using the global variables
-	global guesses, tries, word
+# Game
+counter = 1
+while True:
+	if counter == 1:
+		guesses = ''
+		word = get_word()	
+		tries = get_tries()
+	else:
+		pass
+		
+	counter += 1
+	
+	# Decide whether or not to colorize output
+	color_output()
+	new_word = compare_words(word)
 	
 	# We use a while loop to keep prompting the user for a single letter
 	while True:
@@ -127,32 +147,31 @@ def guessword():
 				# Then we break out of the loop
 				break
 			# If it's not a letter but only one character we still keep going	
-			print colored('Please enter only letters', 'magenta', attrs=['bold'])
+			print err_msg_let
 		# If it's not a single character
 		else:
-			print colored('Please enter only one character', 'magenta', attrs=['bold'])
+			print err_msg_one
     
     # Regardless of what was entered, the letter is now lowercase	
 	letter = letter.lower()
 	
 	# If the letter has already been guessed, tell the user then go back to the beginning
 	if letter in guesses:
-		print colored("That letter has already been guessed.", 'red', attrs=['bold'])
-		guessword()
+		print err_msg_gss
+		continue
 	# Otherwise we'll add it to the list
 	else:
 		guesses += letter
-		
-	# Remember return? By returning a value we evaluate and store in new_word
-	new_word = compare_words()
+	
+	new_word = compare_words(word)	
 	
 	# If the letter is not one in the word we're guessing
 	if letter not in word:
 		# Take away one try
 		tries -= 1
-		print colored("Incorrect. You have %d tries left." % tries, 'red', attrs=['bold'])
+		print incor_msg % tries
 	else:
-		print colored("Correct!", 'green', attrs=['bold'])
+		print correct_msg
 	
 	# Display the user's current guesses and progress
 	print "\nCurrent guesses: %s" % guesses
@@ -160,29 +179,16 @@ def guessword():
 	
 	# If the user successfully guesses the word
 	if new_word == word:
-		print colored("You won! Good job! ", 'green', attrs=['bold']) + "The word was %s" % word
+		print win_msg % word
 		play_again()
 	# But if the user lost...
 	elif tries == 0:
-		print colored("You lose! The word was %s" % word, 'red', attrs=['bold'])
+		print lose_msg % word
 		play_again()
 	# If the user has not lost or won yet, go back to the beginning
 	else:
-		guessword()
+		continue
 
-# Ask the user if they'd like to play again; if not just exit
-def play_again():
-	again = raw_input("Play again? (Y/n) > ")
-	if again == "y" or again == "Y": 
-		# Reset the game then start over
-		var_init()
-		guessword() 
-	else:
-		exit(0)
-	
-# The initial start of the game
-var_init()		
-guessword()
 
 
 

@@ -28,7 +28,13 @@ def decrypt_file(file_name, key):
         ciphertext = fo.read()
     dec = decrypt(key, ciphertext)
     return dec
-       
+
+def get_list():
+	dict_file = decrypt_file(args.dictionary, 'password')
+	hang_list = dict_file.splitlines()
+	hang_list = filter(None, hang_list)
+	return hang_list
+      
 def get_word():
 	global word
 	if args.random:
@@ -46,10 +52,7 @@ def get_word():
 		
 	elif args.dictionary:
 		# We decrypt the input file and use that now. However, now we don't need to open it
-		# TODO: Have dict_file survive when game is restarted
-		dict_file = decrypt_file(args.dictionary, 'password')
-		hang_list = dict_file.splitlines()
-		hang_list = filter(None, hang_list) 
+		hang_list = get_list()
 		word = random.choice(hang_list)
 
 	else:
@@ -59,87 +62,110 @@ def get_word():
 		"""
 		exit(0)	
 	word = word.lower()
+	return word
 
+# Based on the selected level define how many incorrect guesses. 
+# If none selected, default to 20
 def get_tries():
 	global tries
 	if args.level == 1:
-		tries = 15
+		tries = 15 
 	elif args.level == 2:
 		tries = 10 
 	elif args.level == 3:
 		tries = 5
 	else:
 		tries = 15
+	return tries
 	
-def var_init():
-	global guesses
-	guesses = ''
-	get_tries()
-	get_word()
-		
-def compare_words():
-	global guesses
+# This tells us our progress	
+def compare_words(word):
+	# First create a blank variable for progress
 	new_word = ''
+	# Loop through the letters in our word
 	for char in word:
+		# If the character in the word matches one we've guessed, write it
 		if char in guesses: 
 			new_word += char
+		# Otherwise leave it blank until we guess it
 		else:
 			new_word += " _ "
-	return new_word
+	# This tells the function to output, so 
+	# we store the value of the function itself in a new variable
+	return new_word				
 
-def guessword():
-	global guesses, tries, word
-	
-	while True:
-		letter = raw_input("Guess a letter: ")
-		if len(letter) == 1:
-			if letter in string.letters:
-				break
-			print colored('Please enter only letters', 'magenta', attrs=['bold'])
-		else:
-			print colored('Please enter only one character', 'magenta', attrs=['bold'])
-    	
-	letter = letter.lower()
-	if letter in guesses:
-		print colored("That letter has already been guessed.", 'red', attrs=['bold'])
-		guessword()
-	else:
-		guesses += letter
-		
-	new_word = compare_words()
-		
-	if letter not in word:
-		tries -= 1
-		print colored("Incorrect. You have %d tries left." % tries, 'red', attrs=['bold'])
-	else:
-		print colored("Correct!", 'green', attrs=['bold'])
-		
-	print "\nCurrent guesses: %s" % guesses
-	print "%s\n\n" % new_word
-
-	if new_word == word:
-		print colored("You won! Good job! ", 'green', attrs=['bold']) + "The word was %s" % word
-		play_again()
-		else:
-			exit(0)
-	elif tries == 0:
-		print colored("You lose! The word was %s" % word, 'red', attrs=['bold'])
-		play_again()
-	else:
-		guessword()
-
+# Ask the user if they'd like to play again; if not just exit
 def play_again():
 	again = raw_input("Play again? (Y/n) > ")
 	if again == "y" or again == "Y": 
-		# Reset the game then start over
-		var_init()
-		guessword() 
+		global counter
+		counter = 1
 	else:
-		exit(0)
+		exit(0)	
 
-var_init()		
-guessword()
-
-
-
-
+# Game
+counter = 1
+while True:
+	if counter == 1:
+		guesses = ''
+		word = get_word()	
+		tries = get_tries()
+	else:
+		pass
+		
+	counter += 1
+	
+	# Decide whether or not to colorize output
+	color_output()
+	new_word = compare_words(word)
+	
+	# We use a while loop to keep prompting the user for a single letter
+	while True:
+		letter = raw_input("Guess a letter: ")
+		if len(letter) == 1:
+			# Until the input is one letter (not a symbol or number)
+			if letter in string.letters:
+				# Then we break out of the loop
+				break
+			# If it's not a letter but only one character we still keep going	
+			print err_msg_let
+		# If it's not a single character
+		else:
+			print err_msg_one
+    
+    # Regardless of what was entered, the letter is now lowercase	
+	letter = letter.lower()
+	
+	# If the letter has already been guessed, tell the user then go back to the beginning
+	if letter in guesses:
+		print err_msg_gss
+		continue
+	# Otherwise we'll add it to the list
+	else:
+		guesses += letter
+	
+	new_word = compare_words(word)	
+	
+	# If the letter is not one in the word we're guessing
+	if letter not in word:
+		# Take away one try
+		tries -= 1
+		print incor_msg % tries
+	else:
+		print correct_msg
+	
+	# Display the user's current guesses and progress
+	print "\nCurrent guesses: %s" % guesses
+	print "%s\n\n" % new_word
+	
+	# If the user successfully guesses the word
+	if new_word == word:
+		print win_msg % word
+		play_again()
+	# But if the user lost...
+	elif tries == 0:
+		print lose_msg % word
+		play_again()
+	# If the user has not lost or won yet, go back to the beginning
+	else:
+		continue
