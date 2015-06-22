@@ -10,6 +10,9 @@ The following are what I needed to install on my Arch machine:
 
 However, it's possible you may be missing things. YMMV
 
+# Tools
+Included in the tools folder are two scripts to encode or decode a dictionary file. Usage: `./<en/de>code file.txt`
+
 # TODO
 * ✓ ~~Allow color to be turned off~~
 * Add a cheat mode which runs purposely exploitable code
@@ -19,3 +22,5 @@ However, it's possible you may be missing things. YMMV
 * ~~Add extra dictionary files and store them in a format other than plaintext so you can't cheat~~
   * Encoding the words in hex to discourage cheating
 * Improve this game so much that it becomes an operating system
+
+
