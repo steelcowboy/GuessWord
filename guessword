@@ -30,11 +30,10 @@ from sys import exit
 import random, os, argparse, string
 from os.path import exists
 import imp
-from functions.guessfunctions import *
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-d", "--dictionary", 
-                    help="specify text file for words")
+                    help="specify text file for words (must be encoded in hex)")
 parser.add_argument("-l", "--level", type=int, choices=[1,2,3],
 					help="""choose a difficulty level (default is 1): 
 					level 1 is fifteen incorrect guesses,
@@ -76,6 +75,7 @@ def get_word():
 		hang_list = open(dict_file).read().splitlines()
 		hang_list = filter(None, hang_list) 
 		word = random.choice(hang_list)
+		word = word.decode('hex')
 	
 	# If none were selected print an error and exit
 	else:
@@ -89,9 +89,8 @@ def get_word():
 	return word
 
 # Based on the selected level define how many incorrect guesses. 
-# If none selected, default to 20
+# If none selected, default to 15
 def get_tries():
-	global tries
 	if args.level == 1:
 		tries = 15 
 	elif args.level == 2:
