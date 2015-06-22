@@ -1,0 +1,21 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+#
+
+from sys import argv
+from os import rename, remove
+script, enc_file = argv
+
+def encode_file(pfile):
+	new_words = []
+	bakfile = pfile+'.bak'
+	rename(pfile, bakfile)
+	fi = open(bakfile, 'r+')
+	fo = open(pfile, 'w+')
+	words = fi.read().splitlines()
+	for word in words:
+		new_word = word.encode('hex')
+		fo.write(new_word + '\n')
+	remove(bakfile)
+	
+encode_file(enc_file)
