@@ -145,7 +145,7 @@ elif found:
 	correct_msg = colored("Correct!", 'green', attrs=['bold'])
 	incor_msg = colored("Incorrect. You have %d tries left.", 'red', attrs=['bold'])
 	win_msg = colored("You won! Good job! ", 'green', attrs=['bold']) + "The word was %s"
-	lose_msg = colored("You lose!", 'red', attrs=['bold']) + "The word was %s" 
+	lose_msg = colored("You lose! ", 'red', attrs=['bold']) + "The word was %s" 
 	err_msg_let = colored("Please enter only letters.", 'magenta', attrs=['bold'])
 	err_msg_one = colored("Please enter only one character.", 'magenta', attrs=['bold'])
 	err_msg_gss = colored("That letter has already been guessed.", 'red', attrs=['bold'])
