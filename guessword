@@ -59,7 +59,9 @@ def get_word():
 			# Remove any blank lines    
 			hang_list = filter(None, hang_list)
 			# Choose a random word from the list            
-			word = random.choice(hang_list)	
+			word = random.choice(hang_list)
+			# Decode the word from hex
+			word = word.decode('hex')	
 		# If the dictionary file does not exist we'll get it from the internet				  
 		else:      
 			import requests
