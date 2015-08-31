@@ -25,7 +25,7 @@
 #~ SOFTWARE.
 #-----------------------------------------------------------------------
 
-from sys import exit
+from sys import exit, argv
 import argparse, string
 from wordfunctions import * 
 
@@ -44,8 +44,16 @@ parser.add_argument("--no-color", action="store_true",
                 help = "turn off color")
 args = parser.parse_args()
 
+if len(argv)==1:
+    parser.print_help()
+    exit(1)
+
+
 def get_word():
-    if args.random:  
+    if args.dictionary:
+        word = get_dict(args.dictionary)
+
+    else:  
         if get_rand():
             word = get_rand()    
         else:
@@ -53,16 +61,6 @@ def get_word():
             Unable to locate dictionary. Please install the 'requests' module or supply a 'random.txt' file.
             ''')
             exit(0)
-
-    elif args.dictionary:
-        word = get_dict(args.dictionary)
-
-    else:
-        print(''' 
-        No dictionary selected. Please either use a random word with
-        the "-r" option or choose a dictionary file with "-d".
-        ''')
-        exit(0)	
     return list(word)
 
 msgs = get_msg(args.no_color)
