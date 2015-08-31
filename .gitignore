@@ -1,2 +1,4 @@
-functions
 guessword_curses
+__pycache__/
+guessword_test        
+                
