@@ -1,22 +1,21 @@
 # GuessWord
-A simple python2 game similar to hangman. Just a project I've been working on as I learn more and more python.
+A simple python*3* game similar to hangman. Just a project I've been working on as I learn more and more python.
 
 # Dependencies
 The following are what I needed to install on my Arch machine:
-* python2-configargparse
-* python2-requests (optional -- only if you don't have `random.txt`)
-* python2-termcolor (optional -- can also use ASCI escape sequences for color)
-* simple-cipher module to use guessword_enc
+* python-configargparse
+* python-requests (optional -- only if you don't have `random.txt`)
+* python-termcolor (optional -- can also use ASCI escape sequences for color)
 
 However, it's possible you may be missing things. YMMV
 
 # Tools
-Included in the tools folder are two scripts to encode or decode a dictionary file. Usage: `./<en/de>code file.txt`
+Included in the tools folder are two scripts to encode or decode a dictionary file. Usage: `./tools/{en/de}code file.txt`
 
 # TODO
-* ✓ ~~Allow color to be turned off~~
+* ✓ Allow color to be turned off
 * Add a cheat mode which runs purposely exploitable code
-* Support for multiple words
+* ✓ Support for multiple words -- and words with special characters, such as apostrophes!
 * Get dictionary definitions for words from random.txt
 * Create an ncurses version
 * ~~Add extra dictionary files and store them in a format other than plaintext so you can't cheat~~
