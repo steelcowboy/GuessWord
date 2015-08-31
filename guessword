@@ -25,11 +25,9 @@
 #~ SOFTWARE.
 #-----------------------------------------------------------------------
 
-# Import our modules
 from sys import exit
-import random, os, argparse, string
-from os.path import exists
-import imp
+import argparse, string
+from functions import * 
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-d", "--dictionary", 
@@ -46,32 +44,18 @@ parser.add_argument("--no-color", action="store_true",
                 help = "turn off color")
 args = parser.parse_args()
 
-## Functions
-# This retrieves the word to guess 
 def get_word():
     if args.random:  
-        if exists("random.txt"):  
-            dict_file = "random.txt" 
-            # Open the file then make a list of all the lines       
-            hang_list = open(dict_file).read().splitlines()
-            # Remove any blank lines    
-            hang_list = list(filter(None, hang_list))
-            word = random.choice(hang_list)
-            word = bytes.fromhex(word).decode('utf-8')	
-        else:      
-            import requests
-            word_site = "http://svnweb.freebsd.org/csrg/share/dict/words?view=co&content-type=text/plain"
-            response = requests.get(word_site)
-            words = response.content.splitlines()
-            word = random.choice(words)
+        if get_rand():
+            word = get_rand()    
+        else:
+            print('''
+            Unable to locate dictionary. Please install the 'requests' module or supply a 'random.txt' file.
+            ''')
+            exit(0)
 
     elif args.dictionary:
-        dict_file = args.dictionary
-        hang_list = open(dict_file).read().splitlines()
-        hang_list = list(filter(None, hang_list)) 
-        word = random.choice(hang_list)
-        word = bytes.fromhex(word).decode('utf-8') 
-
+        word = get_dict(args.dictionary)
 
     else:
         print(''' 
@@ -79,13 +63,8 @@ def get_word():
         the "-r" option or choose a dictionary file with "-d".
         ''')
         exit(0)	
+    return list(word)
 
-    # Change any uppercase letters in the word to lowercase
-    word = word.lower()
-    return word
-
-# Based on the selected level define how many incorrect guesses. 
-# If none selected, default to 15
 def get_tries():
     if args.level:
         tries = 20 - args.level * 5
@@ -93,109 +72,66 @@ def get_tries():
         tries = 15
     return tries
 
-# This tells us our progress	
-def compare_words(word):
-    new_word = ''
-    for char in word:
-        if char in guesses: 
-            new_word += char
-        else:
-            new_word += " _ "
-    return new_word	
+def gen_blank_word(word):
+    blank_word = ["_"] * len(word)
+    for x in range(0, len(word)):
+        if word[x] not in string.ascii_letters:
+            blank_word[x] = word[x]
+    return blank_word
 
-## Game body
-
-# First set up the messages
-
-# Check to see if termcolor exists
-try:
-    imp.find_module('termcolor')
-    found = True
-except ImportError:
-    found = False
-
-# This may eventually be replaced with classes or dictionaries or something
-if args.no_color:
-    correct_msg = "Correct!"
-    inncor_msg = "Incorrect. You have %d tries left."
-    win_msg = "You won! Good job! The word was %s"
-    lose_msg = "You lose! The word was %s" 
-    err_msg_let = "Please enter only letters."
-    err_msg_one = "Please enter only one character."
-    err_msg_gss = "That letter has already been guessed." 
-
-elif found:
-    from termcolor import colored
-    correct_msg = colored("Correct!", 'green', attrs=['bold'])
-    incor_msg = colored("Incorrect. You have %d tries left.", 'red', attrs=['bold'])
-    win_msg = colored("You won! Good job! ", 'green', attrs=['bold']) + "The word was %s"
-    lose_msg = colored("You lose! ", 'red', attrs=['bold']) + "The word was %s" 
-    err_msg_let = colored("Please enter only letters.", 'magenta', attrs=['bold'])
-    err_msg_one = colored("Please enter only one character.", 'magenta', attrs=['bold'])
-    err_msg_gss = colored("That letter has already been guessed.", 'red', attrs=['bold'])
-
-else:
-    correct_msg = "\033[1;32mCorrect!\033[0m"
-    incor_msg = "\033[1;31mIncorrect. You have %d tries left.\033[0m"
-    win_msg = "\033[1;32mYou won! Good job!\033[0m The word was %s"
-    lose_msg = "\033[1;31mYou lose!\033[0m The word was %s"
-    err_msg_let = "\033[1;35mPlease enter only letters.\033[0m"
-    err_msg_one = "\033[1;35mPlease enter only one character.\033[0m"
-    err_msg_gss = "\033[1;31mThat letter has already been guessed.\033[0m"
-
+msgs = get_msg(args.no_color)
 notnew = None
 
-# Main loop
 while True:
-    # This initializes (and later resets) our variables
     if notnew:
         pass
     else:
         guesses = ''
-        word = get_word()	
+        word = get_word()
+        blankword = gen_blank_word(word) 
         tries = get_tries()
         notnew = True
 
-
-    new_word = compare_words(word)
 
     while True:
         letter = input("Guess a letter: ")
         if len(letter) == 1:
             if letter in string.ascii_letters:
                 break
-            print(err_msg_let)
+            print(msgs.err_letter)
         else:
-            print(err_msg_one)
+            print(msgs.err_one)
 
     letter = letter.lower()
 
     if letter in guesses:
-        print(err_msg_gss)
+        print(msgs.err_guess)
         continue
     else:
         guesses += letter
 
-    new_word = compare_words(word)	
-
-    if letter not in word:
-        tries -= 1
-        print(incor_msg % tries)
+    for x in range(0, len(word)):
+        if letter == word[x]:
+            blankword[x] = letter
+    
+    if letter in blankword:
+        print(msgs.correct)
     else:
-        print(correct_msg)
+        tries -= 1
+        print(msgs.incorrect % tries)
 
     print("\nCurrent guesses: %s" % guesses)
-    print("%s\n\n" % new_word)
+    print("%s\n\n" % ''.join(blankword))
 
-    if new_word == word:
-        print(win_msg % word)
+    if blankword == word:
+        print(msgs.win % ''.join(word))
         again = input("Play again? (Y/n) > ")
         if again == "y" or again == "Y": 
             notnew = None
         else:
             exit(0)	
     elif tries == 0:
-        print(lose_msg % word)
+        print(msgs.lose % ''.join(word))
         again = input("Play again? (Y/n) > ")
         if again == "y" or again == "Y": 
             notnew = None
