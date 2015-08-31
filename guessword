@@ -27,7 +27,7 @@
 
 from sys import exit
 import argparse, string
-from functions import * 
+from wordfunctions import * 
 
 parser = argparse.ArgumentParser()
 parser.add_argument("-d", "--dictionary", 
@@ -65,20 +65,6 @@ def get_word():
         exit(0)	
     return list(word)
 
-def get_tries():
-    if args.level:
-        tries = 20 - args.level * 5
-    else:
-        tries = 15
-    return tries
-
-def gen_blank_word(word):
-    blank_word = ["_"] * len(word)
-    for x in range(0, len(word)):
-        if word[x] not in string.ascii_letters:
-            blank_word[x] = word[x]
-    return blank_word
-
 msgs = get_msg(args.no_color)
 notnew = None
 
@@ -89,7 +75,7 @@ while True:
         guesses = ''
         word = get_word()
         blankword = gen_blank_word(word) 
-        tries = get_tries()
+        tries = get_tries(args.level)
         notnew = True
 
 

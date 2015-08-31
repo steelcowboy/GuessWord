@@ -17,7 +17,8 @@ Included in the tools folder are two scripts to encode or decode a dictionary fi
 * Add a cheat mode which runs purposely exploitable code
 * ✓ Support for multiple words -- and words with special characters, such as apostrophes!
 * Get dictionary definitions for words from random.txt
-* Create an ncurses version
+* ✓ Create an ncurses version
+  * May also make a urwid version, depending on if I feel like I'll ever use urwid again
 * ~~Add extra dictionary files and store them in a format other than plaintext so you can't cheat~~
   * Encoding the words in hex to discourage cheating
 * Improve this game so much that it becomes an operating system

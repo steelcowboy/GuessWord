@@ -1,4 +1,4 @@
-import random, imp
+import random, imp, string
 from os.path import exists
 
 def get_rand():
@@ -31,6 +31,21 @@ def get_dict(dictionary):
     word = random.choice(hang_list)
     word = bytes.fromhex(word).decode('utf-8').lower()
     return word
+
+def get_tries(level):
+    if level:
+        tries = 20 - level * 5
+    else:
+        tries = 15
+    return tries
+
+def gen_blank_word(word):
+    blank_word = ["_"] * len(word)
+    for x in range(0, len(word)):
+        if word[x] not in string.ascii_letters:
+            blank_word[x] = word[x]
+    return blank_word
+
 
 def get_msg(args):
     try:
